@@ -23,9 +23,11 @@ typedef struct
 
 typedef struct
 {
-    uint32_t dir_sector;            //< Number of sector of previous directory that contains file's entire
+    uint32_t cluster;               //< Cluster of temp file / subdirectory
+    uint32_t dir_cluster;           //< Cluster of directory contains temporary file/dir
+    uint8_t dir_sec_offset;         //< Number of sector in dir_cluster contains entire
     uint32_t entire_in_dir_clust;   //< Number of entire of file in dir's sector
-    uint32_t cluster;               //< Number cluster of temp file / subdirectory
+    
     uint32_t len;                   //< Length of file (always 0 for directories)
     uint8_t status;                 //< Status of temp file / subdirectory
 } MIK32FAT_TempData_TypeDef;

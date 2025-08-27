@@ -72,6 +72,9 @@ void mik32fat_decode_status(MIK32FAT_Status_TypeDef status)
         case MIK32FAT_STATUS_NO_FREE_SPACE:
             printf("No free space");
             break;
+        case MIK32FAT_STATUS_NAME_ERROR:
+            printf("Name error");
+            break;
         default:
             printf("Unexpected error (%d)", (int)status);
     }
@@ -168,9 +171,10 @@ void mik32fat_diag_fat_info(MIK32FAT_Descriptor_TypeDef *fs)
     printf("* FAT length, sec ---- %u\n", (unsigned)fs->param.fat_length);
     printf("* Clust length ------- %u\n", (unsigned)fs->param.clust_len_bytes);
     printf("Temporary object parameters:\n");
-    printf("* Dir sector --------------------------- %u\n", (unsigned)fs->temp.dir_sector);
-    printf("* Number of entires in directory ------- %u\n", (unsigned)fs->temp.entire_in_dir_clust);
-    printf("* Number of clusters in temp file/dir -- %u\n", (unsigned)fs->temp.cluster);
+    printf("* 1st file/dir cluster ----------------- %u\n", (unsigned)fs->temp.cluster);
+    printf("* 1st clust of dir contains temp obj---- %u\n", (unsigned)fs->temp.dir_cluster);
+    printf("* Sector in dir clust with obj entire -- %u\n", fs->temp.dir_sec_offset);
+    printf("* Obj entire in directory -------------- %u\n", (unsigned)fs->temp.entire_in_dir_clust);
     printf("* Filelength (0 for dirs) -------------- %u\n", (unsigned)fs->temp.len);
     printf("* File/dir status ---------------------- %u\n", fs->temp.status);
 }

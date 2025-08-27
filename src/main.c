@@ -1,52 +1,60 @@
 #include "mik32_hal_spi.h"
-#include "sd.h"
-#include "mik32fat.h"
+#include "mik32sd.h"
+#include "mik32fs.h"
 #include "mik32_hal_usart.h"
-#include "xprintf.h"
+#include "mik32_stdio.h"
 
+#include "cli.h"
 /*
  * Данный пример демонстрирует работу драйвера карт SD и
  * файловой системы, совместимой с файловой системой FAT32
  */
 
-#define READ_EXAMPLE
+//#define READ_EXAMPLE
 #define WRITE_EXAMPLE
 
 
 #define READ_BUFFER_LENGTH  20
-USART_HandleTypeDef husart0;
 
 SPI_HandleTypeDef hspi_sd;
-SD_Descriptor_t sd;
-FAT_Descriptor_t fs;
+MIK32SD_Descriptor_TypeDef sd;
+MIK32FAT_Descriptor_TypeDef fs;
 
 
 void SystemClock_Config(void);
+static void SPI0_Init(void);
 static void SD_FS_Config();
-static void USART_Init();
+
+void trap_handler()
+{
+    printf("Podstava sluchilas\n");
+}
 
 int main()
 {
     SystemClock_Config();
+    
+    mik32_stdio_init(UART_0, 9600);
+    SPI0_Init();
 
-    USART_Init();
+    printf("\n\n*** Start ***\n");
+    cli_command();
 
-    xprintf("\n\n*** Start ***\n");
 
     SD_FS_Config();
 
-    FAT_Status_t res;
+    // MIK32FAT_Status_TypeDef res;
 
 #ifdef READ_EXAMPLE
-    xprintf("\nReading file example\n");
+    printf("\nReading file example\n");
     FAT_File_t read_file;
     res = MIK32FAT_FileOpen(&read_file, &fs, "TESTS/READ.TXT", 'R');
-    xprintf("TESTS/READ.TXT file open status: %d\n", res);
+    printf("TESTS/READ.TXT file open status: %d\n", res);
     if (res != FAT_OK)
     {
         while (1)
         {
-            xprintf("Error occured with file TESTS/READ.TXT, status %u\n", res);
+            printf("Error occured with file TESTS/READ.TXT, status %u\n", res);
             HAL_DelayMs(5000);
         }
     }
@@ -54,40 +62,51 @@ int main()
     uint8_t i = read_file.len / (READ_BUFFER_LENGTH-1);
     if (read_file.len % (READ_BUFFER_LENGTH-1) != 0) i += 1;
     uint32_t bytes_read;
-    xprintf("Text:\n");
+    printf("Text:\n");
     while (i > 0)
     {
         bytes_read = MIK32FAT_ReadFile(&read_file, read_buffer, READ_BUFFER_LENGTH-1);
         if (bytes_read == 0)
         {
-            xprintf("Error occured while file reading, stop.\n");
+            printf("Error occured while file reading, stop.\n");
             break;
         }
         else 
         {
             /* Вставить символ возврата каретки для корректной печати */
             read_buffer[bytes_read] = '\0';
-            xprintf("%s", read_buffer);
+            printf("%s", read_buffer);
         }
         i -= 1;
     }
 #endif
 #ifdef WRITE_EXAMPLE
-    xprintf("\nWriting file example\n");
-    FAT_File_t write_file;
-    res = MIK32FAT_FileOpen(&write_file, &fs, "TESTS/WRITE1.TXT", 'W');
-    xprintf("TESTS/WRITE1.TXT file open status: %d\n", res);
-    if (res != FAT_OK)
+    // printf("\nWriting file example\n");
+    // FAT_File_t write_file;
+    // res = MIK32FAT_FileOpen(&write_file, &fs, "TESTS/WRITE1.TXT", 'W');
+    // printf("TESTS/WRITE1.TXT file open status: %d\n", res);
+    // if (res != FAT_OK)
+    // {
+    //     while (1)
+    //     {
+    //         printf("Error occured with file TESTS/WRITE1.TXT, status %u\n", res);
+    //         HAL_DelayMs(5000);
+    //     }
+    // }
+    // char str[] = "Writing string to file\n";
+    // printf("Wrote bytes: %d\n", (unsigned)MIK32FAT_WriteFile(&write_file, str, strlen(str)-1));
+    // printf("Close status: %d\n", (unsigned)MIK32FAT_FileClose(&write_file));
+    printf("\nWriting file example\n");
+    mik32fs_set_disk(&sd);
+    mik32fs_set_fs(&fs);
+    FILE *write_file = mik32fs_fopen("TESTS/WRITE1", 'W');
+    if (write_file == NULL)
     {
-        while (1)
-        {
-            xprintf("Error occured with file TESTS/WRITE1.TXT, status %u\n", res);
-            HAL_DelayMs(5000);
-        }
+        printf("Proizoshla podstava.\n");
     }
     char str[] = "Writing string to file\n";
-    xprintf("Wrote bytes: %d\n", MIK32FAT_WriteFile(&write_file, str, strlen(str)-1));
-    xprintf("Close status: %d\n", MIK32FAT_FileClose(&write_file));
+    printf("Wrote bytes: %d\n", (unsigned)mik32_fs_write(NULL, write_file->_cookie, str, strlen(str)-1));
+    printf("Close status: %d\n", (unsigned)mik32_fs_close(NULL, write_file->_cookie));
 #endif
 }
 
@@ -113,88 +132,46 @@ void SystemClock_Config(void)
 
 static void SD_FS_Config()
 {
-    SD_Status_t res;
-    res = SD_Init(&sd, &hspi_sd, SPI_0, SPI_CS_0);
-    xprintf("SD card: %s\n", res==SD_OK ? "found" : "not found");
-    if (res != SD_OK)
-    {
-        while (1);
-    }
-    xprintf("Type: ");
-    switch (sd.type)
-    {
-        case SDv1: xprintf("SDv1"); break;
-        case SDv2: xprintf("SDv2"); break;
-        case SDHC: xprintf("SDHC"); break;
-        case MMC: xprintf("MMC"); break;
-        default: xprintf("Unknown");
-    }
-    xprintf("\n");
 
     /* Инициализация */
-    FAT_Status_t fs_res;
-    fs_res = MIK32FAT_Init(&fs, &sd);
-    xprintf("FS initialization: %s", fs_res==FAT_OK ? "ok\n" : "failed, ");
-    if (fs_res != FAT_OK)
+    MIK32FAT_Status_TypeDef fs_res;
+    fs_res = mik32fat_init(&fs, &sd);
+    printf("FS initialization: %s", fs_res==MIK32FAT_STATUS_OK ? "ok\n" : "failed, ");
+    if (fs_res != MIK32FAT_STATUS_OK)
     {
         switch (fs_res)
         {
-            case FAT_DiskError: xprintf("disk error"); break;
-            case FAT_DiskNForm: xprintf("disk not mount"); break;
-            default: xprintf("unknown error"); break;
+            case MIK32FAT_STATUS_DISK_ERROR: printf("disk error"); break;
+            case MIK32FAT_STATUS_DISK_NOT_FORM: printf("disk not mount"); break;
+            default: printf("unknown error"); break;
         }
-        xprintf("\n");
+        printf("\n");
         while(1);
     }
-    // xprintf("FS startaddr: %u\n", fs.fs_begin);
-    // xprintf("First FAT1 startaddr: %u\n", fs.fat1_begin);
-    // xprintf("First FAT2 startaddr: %u\n", fs.fat2_begin);
-    // xprintf("First data cluster: %u\n", fs.data_region_begin);
-    // xprintf("FAT length: %u\n", fs.param.fat_length);
-    // xprintf("Num of FATs: %u\n", fs.param.num_of_fats);
-    // xprintf("Sectors per cluster: %u\n", fs.param.sec_per_clust);
+    // printf("FS startaddr: %u\n", fs.fs_begin);
+    // printf("First FAT1 startaddr: %u\n", fs.fat1_begin);
+    // printf("First FAT2 startaddr: %u\n", fs.fat2_begin);
+    // printf("First data cluster: %u\n", fs.data_region_begin);
+    // printf("FAT length: %u\n", fs.param.fat_length);
+    // printf("Num of FATs: %u\n", fs.param.num_of_fats);
+    // printf("Sectors per cluster: %u\n", fs.param.sec_per_clust);
 }
 
-
-static void USART_Init()
+static void SPI0_Init(void)
 {
-    husart0.Instance = UART_0;
-    husart0.transmitting = Enable;
-    husart0.receiving = Disable;
-    husart0.frame = Frame_8bit;
-    husart0.parity_bit = Disable;
-    husart0.parity_bit_inversion = Disable;
-    husart0.bit_direction = LSB_First;
-    husart0.data_inversion = Disable;
-    husart0.tx_inversion = Disable;
-    husart0.rx_inversion = Disable;
-    husart0.swap = Disable;
-    husart0.lbm = Disable;
-    husart0.stop_bit = StopBit_1;
-    husart0.mode = Asynchronous_Mode;
-    husart0.xck_mode = XCK_Mode3;
-    husart0.last_byte_clock = Disable;
-    husart0.overwrite = Disable;
-    husart0.rts_mode = AlwaysEnable_mode;
-    husart0.dma_tx_request = Disable;
-    husart0.dma_rx_request = Disable;
-    husart0.channel_mode = Duplex_Mode;
-    husart0.tx_break_mode = Disable;
-    husart0.Interrupt.ctsie = Disable;
-    husart0.Interrupt.eie = Disable;
-    husart0.Interrupt.idleie = Disable;
-    husart0.Interrupt.lbdie = Disable;
-    husart0.Interrupt.peie = Disable;
-    husart0.Interrupt.rxneie = Disable;
-    husart0.Interrupt.tcie = Disable;
-    husart0.Interrupt.txeie = Disable;
-    husart0.Modem.rts = Disable; //out
-    husart0.Modem.cts = Disable; //in
-    husart0.Modem.dtr = Disable; //out
-    husart0.Modem.dcd = Disable; //in
-    husart0.Modem.dsr = Disable; //in
-    husart0.Modem.ri = Disable;  //in
-    husart0.Modem.ddis = Disable;//out
-    husart0.baudrate = 115200;
-    HAL_USART_Init(&husart0);
+    hspi_sd.Instance = SPI_0;
+    /* Режим SPI */
+    hspi_sd.Init.SPI_Mode = HAL_SPI_MODE_MASTER;
+    /* Настройки */
+    hspi_sd.Init.BaudRateDiv = SPI_BAUDRATE_DIV256;
+    hspi_sd.Init.CLKPhase = SPI_PHASE_ON;
+    hspi_sd.Init.CLKPolarity = SPI_POLARITY_HIGH;
+    hspi_sd.Init.Decoder = SPI_DECODER_NONE;
+    hspi_sd.Init.ThresholdTX = 1;
+    hspi_sd.Init.ManualCS = SPI_MANUALCS_ON; /* Настройки ручного режима управления сигналом CS */
+    hspi_sd.Init.ChipSelect = SPI_CS_0;       /* Выбор ведомого устройства в автоматическом режиме управления CS */
+    if (HAL_SPI_Init(&hspi_sd) != HAL_OK)
+    {
+        xprintf("SPI_Init_Error\n");
+    }
 }

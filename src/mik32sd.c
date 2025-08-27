@@ -407,6 +407,9 @@ MIK32SD_Status_TypeDef mik32_sd_single_erase
     }
     mik32_sd_spi_ex(&sd->spi, 0xFF);
     mik32_sd_spi_ex(&sd->spi, 0xFF);
+    mik32_sd_spi_ex(&sd->spi, 0xFF);
+    mik32_sd_spi_ex(&sd->spi, 0xFF);
+    
     mik32_sd_spi_cs_up(&sd->spi);
     return MIK32SD_STATUS_OK;
 }

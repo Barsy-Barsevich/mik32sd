@@ -150,7 +150,12 @@ dma_status_t mik32_sd_spi_sector_write(mik32_sd_spi_t *desc, const void *src, ui
     {
         return DMA_STATUS_INCORRECT_ARGUMENT;
     }
-    dma_status_t res;
-    res = spi_transmit(&desc->spi_trans, (char*)src, len_bytes, DMA_NO_TIMEOUT);
-    return res;
+    // dma_status_t res;
+    // res = spi_transmit(&desc->spi_trans, (char*)src, len_bytes, DMA_NO_TIMEOUT);
+    // return res;
+    for (int i=0; i<len_bytes; i++)
+    {
+        mik32_sd_spi_ex(desc, ((uint8_t*)src)[i]);
+    }
+    return DMA_STATUS_OK;
 }

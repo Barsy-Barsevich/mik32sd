@@ -8,6 +8,8 @@
 #include "mik32fat_param.h"
 #include "mik32fat_wheels.h"
 
+#include "mik32fat_file.h"
+
 MIK32FAT_Status_TypeDef mik32fat_init(MIK32FAT_Descriptor_TypeDef *fs, MIK32SD_Descriptor_TypeDef *sd_card);
 MIK32FAT_Status_TypeDef mik32fat_set_pointer_to_root(MIK32FAT_Descriptor_TypeDef *fs);
 MIK32FAT_Status_TypeDef mik32fat_find_next_cluster(MIK32FAT_Descriptor_TypeDef* fs);
@@ -15,12 +17,8 @@ MIK32FAT_Status_TypeDef mik32fat_find_by_name(MIK32FAT_Descriptor_TypeDef *fs, c
 MIK32FAT_Status_TypeDef mik32fat_find_by_path(MIK32FAT_Descriptor_TypeDef *fs, const char *path);
 MIK32FAT_Status_TypeDef mik32fat_find_or_create_by_path(MIK32FAT_Descriptor_TypeDef *fs, const char *path);
 MIK32FAT_Status_TypeDef mik32fat_take_free_cluster(MIK32FAT_Descriptor_TypeDef* fs, uint32_t clust, uint32_t* new_clust);
-MIK32FAT_Status_TypeDef mik32fat_file_open(MIK32FAT_File_TypeDef* file, MIK32FAT_Descriptor_TypeDef* fs, const char* name, const char modificator);
-MIK32FAT_Status_TypeDef mik32fat_file_close(MIK32FAT_File_TypeDef* file);
-uint32_t mik32fat_read_file(MIK32FAT_File_TypeDef* file, char* buf, uint32_t quan);
-uint32_t mik32fat_write_file(MIK32FAT_File_TypeDef* file, const char* buf, uint32_t quan);
-MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, char* name, bool dir);
-MIK32FAT_Status_TypeDef mik32fat_delete(MIK32FAT_Descriptor_TypeDef* fs, char* name);
+MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const char* name, bool dir);
+MIK32FAT_Status_TypeDef mik32fat_delete(MIK32FAT_Descriptor_TypeDef* fs, const char* name);
 
 inline MIK32FAT_Status_TypeDef MIK32FAT_I(MIK32FAT_Descriptor_TypeDef *fs, MIK32SD_Descriptor_TypeDef *sd_card)
 {
