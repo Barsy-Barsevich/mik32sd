@@ -7,6 +7,7 @@
 #include "mik32sd_command.h"
 #include "mik32fat.h"
 #include "mik32fat_diag.h"
+#include "mik32fat_utils.h"
 
 void cli_command(void);
 void cli_help(void);
@@ -31,3 +32,5 @@ void cli_fileopen(void);
 void cli_fat_fbn(void);
 void cli_fat_fbp(void);
 void cli_fat_fcbp(void);
+void cli_fat_ls(void);
+void cli_fat_pwd(void);

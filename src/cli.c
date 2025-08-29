@@ -118,6 +118,14 @@ void cli_command(void)
         {
             cli_fat_fcbp();
         }
+        else if (strcmp(buf, "ls")==0)
+        {
+            cli_fat_ls();
+        }
+        else if (strcmp(buf, "pwd")==0)
+        {
+            cli_fat_pwd();
+        }
         else if (strcmp(buf, "")==0)
         {
             //do nothing
@@ -152,6 +160,8 @@ void cli_help(void)
     printf("* fbn\n");
     printf("* fbp * cd\n");
     printf("* fcbp\n");
+    printf("* ls\n");
+    printf("* pwd\n");
 }
 
 void cli_spi_init(void)
@@ -534,6 +544,21 @@ void cli_fat_fcbp(void)
             reserved_buff[cnt] = '\0';
         }
     }
-    mik32fat_decode_status(mik32fat_find_or_create_by_path(&fat, reserved_buff));
+    mik32fat_decode_status(mik32fat_find_or_create_by_path(&fat, reserved_buff, true));
     printf("Temp cluster: %u\n", (unsigned)fat.temp.cluster);
+}
+
+void cli_fat_ls(void)
+{
+    MIK32FAT_Status_TypeDef res = mik32fat_utils_ls(&fat, stdout);
+    if (res != MIK32FAT_STATUS_OK)
+    {
+        printf("mik32fat_ls: \n");
+        mik32fat_decode_status(res);
+    }
+}
+
+void cli_fat_pwd(void)
+{
+    printf("%s\n", fat.temp.name);
 }
