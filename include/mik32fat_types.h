@@ -23,6 +23,18 @@ typedef struct
 
 typedef struct
 {
+    uint8_t read_only : 1;
+    uint8_t hidden : 1;
+    uint8_t system : 1;
+    uint8_t volume_id : 1;
+    uint8_t directory : 1;
+    uint8_t archive : 1;
+    uint8_t __res : 2;
+} MIK32FAT_ObjAttr_TypeDef;
+
+
+typedef struct
+{
     uint32_t cluster;               //< Cluster of temp file / subdirectory
     uint32_t dir_cluster;           //< Cluster of directory contains temporary file/dir
     uint8_t dir_sec_offset;         //< Number of sector in dir_cluster contains entire
@@ -30,6 +42,8 @@ typedef struct
     
     uint32_t len;                   //< Length of file (always 0 for directories)
     uint8_t status;                 //< Status of temp file / subdirectory
+
+    char name[8+1+3+1];
 } MIK32FAT_TempData_TypeDef;
 
 typedef struct 

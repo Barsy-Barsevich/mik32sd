@@ -262,7 +262,7 @@ MIK32SD_Status_TypeDef mik32_sd_single_read
     uint8_t resp;
     mik32_sd_spi_cs_down(&sd->spi);
     __SD_ERROR_CHECK( mik32_sd_send_command(sd, MIK32SD_CMD17, addr, 0xff, &resp) );
-    printf("%02X %02X\n", resp, mik32_sd_spi_ex(&sd->spi, 0xFF));
+    // printf("%02X %02X\n", resp, mik32_sd_spi_ex(&sd->spi, 0xFF));
     __SD_ERROR_CHECK( mik32sd_r1_decode(resp) );
 
     // printf("CMD17 resp: 0x%02X\n", resp);
@@ -353,7 +353,7 @@ MIK32SD_Status_TypeDef mik32_sd_single_write
 
     if (accepted != 0)
     {
-        printf("Data resp: 0x%02X\n", data_response);
+        // printf("Data resp: 0x%02X\n", data_response);
         mik32_sd_spi_cs_up(&sd->spi);
         uint8_t rejected_crc = data_response ^ MIK32SD_DATA_RESP_REJECTED_CRC;
         if (rejected_crc == 0)
