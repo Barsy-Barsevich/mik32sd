@@ -72,8 +72,14 @@ void mik32fat_decode_status(MIK32FAT_Status_TypeDef status)
         case MIK32FAT_STATUS_NO_FREE_SPACE:
             printf("No free space");
             break;
+        case MIK32FAT_STATUS_INCORRECT_ARGUMENT:
+            printf("Incorrect argument");
+            break;
         case MIK32FAT_STATUS_NAME_ERROR:
             printf("Name error");
+            break;
+        case MIK32FAT_STATUS_INCORRECT_FILE_LENGHT:
+            printf("Incorrect file length");
             break;
         default:
             printf("Unexpected error (%d)", (int)status);
@@ -171,10 +177,35 @@ void mik32fat_diag_fat_info(MIK32FAT_Descriptor_TypeDef *fs)
     printf("* FAT length, sec ---- %u\n", (unsigned)fs->param.fat_length);
     printf("* Clust length ------- %u\n", (unsigned)fs->param.clust_len_bytes);
     printf("Temporary object parameters:\n");
-    printf("* 1st file/dir cluster ----------------- %u\n", (unsigned)fs->temp.cluster);
-    printf("* 1st clust of dir contains temp obj---- %u\n", (unsigned)fs->temp.dir_cluster);
-    printf("* Sector in dir clust with obj entire -- %u\n", fs->temp.dir_sec_offset);
-    printf("* Obj entire in directory -------------- %u\n", (unsigned)fs->temp.entire_in_dir_clust);
-    printf("* Filelength (0 for dirs) -------------- %u\n", (unsigned)fs->temp.len);
-    printf("* File/dir status ---------------------- %u\n", fs->temp.status);
+    printf("* 1st file/dir cluster ------------------- %u\n", (unsigned)fs->temp.cluster);
+    printf("* 1st clust of dir contains temp obj------ %u\n", (unsigned)fs->temp.dir_cluster);
+    printf("* Sector in dir clust with obj entire ---- %u\n", fs->temp.dir_sec_offset);
+    printf("* File/dir entire in this sector --------- %u\n", (unsigned)fs->temp.entire_in_dir_clust);
+    printf("* File length (0 for directories) -------- %u\n", (unsigned)fs->temp.len);
+    printf("* File/dir status ------------------------ %u\n", fs->temp.status);
+}
+
+void mik32fat_diag_decode_file(MIK32FAT_File_TypeDef *file)
+{
+    printf("Decoding file..\n");
+    printf("* File system desc addr ------------------ %p\n", file->fs);
+    printf("* Writing not finished ------------------- %s\n", file->writing_not_finished ? "true" : "false");
+    printf("Const parameters:\n");
+    // printf("* Name ----------------------------------- %s\n", file->param.name);
+    printf("* 1st cluster ---------------------------- %u\n", (unsigned)file->param.cluster);
+    printf("* 1st cluster of parent directory -------- %u\n", (unsigned)file->param.dir_cluster);
+    printf("* Sector in dir clust with file entire --- %u\n", file->param.dir_sec_offset);
+    printf("* File entire in this sector ------------- %u\n", (unsigned)file->param.entire_in_dir_clust);
+    printf("* File length (when opening) ------------- %u\n", (unsigned)file->param.len);
+    printf("* File status ---------------------------- %u\n", file->param.status);
+    printf("Reading info:\n");
+    printf("* Reading enabled ------------------------ %s\n", file->r.enable ? "true" : "false");
+    printf("* Temporary cluster ---------------------- %u\n", (unsigned)file->r.temp_cluster);
+    printf("* Temporary sector in cluster ------------ %u\n", file->r.temp_sector_in_cluster);
+    printf("* Temporary index ------------------------ %u\n", (unsigned)file->r.idx);
+    printf("Writing info:\n");
+    printf("* Writing enabled ------------------------ %s\n", file->w.enable ? "true" : "false");
+    printf("* Temporary cluster ---------------------- %u\n", (unsigned)file->w.temp_cluster);
+    printf("* Temporary sector in cluster ------------ %u\n", file->w.temp_sector_in_cluster);
+    printf("* Temporary index ------------------------ %u\n", (unsigned)file->w.idx);
 }

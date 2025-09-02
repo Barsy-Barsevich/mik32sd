@@ -22,3 +22,11 @@
         return error;\
     }\
 } while(0);
+
+#define __SAVING_TEMP_ERROR_CHECK(error) do{\
+    if (error != MIK32FAT_STATUS_OK)\
+    {\
+        fs->temp = temp;\
+        return error;\
+    }\
+} while(0);
