@@ -269,6 +269,7 @@ MIK32FAT_Status_TypeDef mik32fat_file_open
         file->r.idx = 0;
         file->r.temp_cluster = fs->temp.cluster;
         file->r.temp_sector_in_cluster = 0;
+        file->data_to_read = fs->temp.len;
     }
     else if (strcmp(mod, "r+") == 0)
     {
@@ -302,6 +303,7 @@ MIK32FAT_Status_TypeDef mik32fat_file_open
         file->w.idx = 0;
         file->w.temp_cluster = fs->temp.cluster;
         file->w.temp_sector_in_cluster = 0;
+        file->data_to_read = 0;
     }
     else if (strcmp(mod, "a") == 0)
     {
@@ -366,6 +368,7 @@ MIK32FAT_Status_TypeDef mik32fat_file_open
         }
         file->r.temp_cluster = fs->temp.cluster;
         file->w.temp_cluster = fs->temp.cluster;
+        file->data_to_read = fs->temp.len;
     }
     else
     {
@@ -380,3 +383,158 @@ MIK32FAT_Status_TypeDef mik32fat_file_open
     fs->temp = temp;
     return MIK32FAT_STATUS_OK;
 }
+
+
+int mik32fat_file_read_byte
+(
+    MIK32FAT_File_TypeDef *file,
+    char *symbol
+)
+{
+    if (file == NULL || symbol == NULL)
+    {
+        file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
+        return (int)MIK32FAT_STATUS_INCORRECT_ARGUMENT;
+    }
+    if (!file->r.enable)
+    {
+        file->errcode = MIK32FAT_STATUS_ERROR;
+        return (int)MIK32FAT_STATUS_ERROR;
+    }
+    if (file->data_to_read == 0)
+    {
+        file->errcode = MIK32FAT_STATUS_END_OF_FILE;
+        return (int)MIK32FAT_STATUS_END_OF_FILE;
+    }
+    file->data_to_read -= 1;
+    
+    MIK32FAT_Descriptor_TypeDef *fs = file->fs;
+
+    uint32_t sector = fs->data_region_begin + file->r.temp_cluster *
+        fs->param.sec_per_clust + file->r.temp_sector_in_cluster;
+    MIK32FAT_Status_TypeDef res = __mik32fat_sector_sread(fs, sector);
+    if (res != MIK32FAT_STATUS_OK)
+    {
+        file->errcode = res;
+        return (int)res;
+    }
+    *symbol = fs->buffer[file->r.idx];
+    if (file->r.idx == fs->sector_len_bytes-1)
+    {
+        file->r.idx = 0;
+        if (file->r.temp_sector_in_cluster == fs->param.sec_per_clust-1)
+        {
+            file->r.temp_sector_in_cluster = 0;
+            MIK32FAT_TempData_TypeDef temp = fs->temp;
+            fs->temp.cluster = file->r.temp_cluster;
+            MIK32FAT_Status_TypeDef res = mik32fat_find_next_cluster(fs);
+            if (res != MIK32FAT_STATUS_OK)
+            {
+                fs->temp = temp;
+                if (res == MIK32FAT_STATUS_NOT_FOUND)
+                {
+                    file->errcode = MIK32FAT_STATUS_INCORRECT_FILE_LENGHT;
+                    return (int)MIK32FAT_STATUS_INCORRECT_FILE_LENGHT;
+                }
+                else
+                {
+                    file->errcode = res;
+                    return (int)res;
+                }
+            }
+            file->r.temp_cluster = fs->temp.cluster;
+            fs->temp = temp;
+        }
+        else
+        {
+            file->r.temp_sector_in_cluster += 1;
+        }
+    }
+    else
+    {
+        file->r.idx += 1;
+    }
+    file->errcode = MIK32FAT_STATUS_OK;
+    return 0;
+}
+
+// /**
+//  * @brief Read data from the file
+//  * @param file pointer to file's structure-descriptor
+//  * @param buf buffer for data
+//  * @param quan number of bytes to read
+//  * @return number of read bytes
+//  */
+// uint32_t mik32fat_read_file
+// (
+//     MIK32FAT_File_TypeDef *file,
+//     char *dst,
+//     uint32_t quan
+// )
+// {
+//     if (file == NULL || dst == NULL)
+//     {
+//         file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
+//         return 0;
+//     }
+//     if (file->w.enable)
+//     {
+//         file->errcode = MIK32FAT_STATUS_ERROR;
+//         return 0;
+//     }
+
+//     MIK32FAT_Descriptor_TypeDef *fs = file->fs;
+//     uint32_t counter = 0;
+
+//     while (quan > 0 && file->r.idx > 0)
+//     {
+
+//     }
+
+
+
+
+
+
+
+
+
+//     while ((quan > 0) && (file->len > 0))
+//     {
+//         /* Cluster */
+//         uint32_t new_cluster = (file->addr - start_addr) / fs->param.clust_len_bytes;
+//         if (new_cluster != 0)
+//         {
+//             start_addr += fs->param.clust_len_bytes;
+//         }
+//         file->fs->temp.cluster = file->cluster;
+//         while (new_cluster > 0)
+//         {
+//             mik32fat_find_next_cluster(file->fs);
+//             new_cluster -= 1;
+//         }
+//         file->cluster = fs->temp.cluster;
+//         /* Read sector data */
+//         uint32_t sector = fs->data_region_begin + file->cluster * fs->param.sec_per_clust +
+//             ((file->addr - start_addr) / 512);
+//         /* Read sector only if has not already buffered */
+//         if (fs->prev_sector != sector)
+//         {
+//             if (mik32fat_wheels_single_read(fs->card, sector, fs->buffer) != 0) return counter;
+//             fs->prev_sector = sector;
+//         }
+//         //xprintf("*%u*\n", sector);
+//         /* Reading sector */
+//         uint16_t x = file->addr % 512;
+//         while ((x < 512) && (quan > 0) && (file->len > 0))
+//         {
+//             dst[counter] = fs->buffer[x];
+//             counter += 1;
+//             x += 1;
+//             quan -= 1;
+//             file->addr += 1;
+//             file->len -= 1;
+//         }
+//     }
+//     return counter;
+// }

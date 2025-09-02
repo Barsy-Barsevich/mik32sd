@@ -126,6 +126,10 @@ void cli_command(void)
         {
             cli_fat_pwd();
         }
+        else if (strcmp(buf, "readbyte")==0)
+        {
+            cli_file_readbyte();
+        }
         else if (strcmp(buf, "")==0)
         {
             //do nothing
@@ -162,6 +166,7 @@ void cli_help(void)
     printf("* fcbp\n");
     printf("* ls\n");
     printf("* pwd\n");
+    printf("* readbyte\n");
 }
 
 void cli_spi_init(void)
@@ -583,4 +588,11 @@ void cli_fat_ls(void)
 void cli_fat_pwd(void)
 {
     printf("%s\n", fat.temp.name);
+}
+
+void cli_file_readbyte(void)
+{
+    char dummy = 'X';
+    printf("Status: %u\n", mik32fat_file_read_byte(&file, &dummy));
+    printf("Res: %c\n", dummy);
 }

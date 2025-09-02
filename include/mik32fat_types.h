@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "mik32sd.h"
 #include "mik32fat_param.h"
+#include "mik32fat_const.h"
 
 typedef struct
 {
@@ -121,8 +122,7 @@ typedef struct
 {
     MIK32FAT_Descriptor_TypeDef *fs;
     MIK32FAT_TempData_TypeDef param;
-    uint32_t data_to_read_idx;
-    uint32_t data_to_write_idx;
+    uint32_t data_to_read;
     struct
     {
         uint32_t temp_cluster;
@@ -138,4 +138,5 @@ typedef struct
         bool enable;
     } w;
     bool writing_not_finished;
+    MIK32FAT_Status_TypeDef errcode;
 } MIK32FAT_File_TypeDef;

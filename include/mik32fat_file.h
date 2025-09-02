@@ -15,3 +15,4 @@
 // uint32_t mik32fat_write_file(MIK32FAT_File_TypeDef* file, const char* buf, uint32_t quan);
 
 MIK32FAT_Status_TypeDef mik32fat_file_open(MIK32FAT_File_TypeDef *file, MIK32FAT_Descriptor_TypeDef *fs, const char *name, const char *mod);
+int mik32fat_file_read_byte(MIK32FAT_File_TypeDef *file, char *symbol);

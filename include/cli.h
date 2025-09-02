@@ -34,3 +34,4 @@ void cli_fat_fbp(void);
 void cli_fat_fcbp(void);
 void cli_fat_ls(void);
 void cli_fat_pwd(void);
+void cli_file_readbyte(void);
