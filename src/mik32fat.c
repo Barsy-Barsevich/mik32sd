@@ -124,20 +124,22 @@ MIK32FAT_Status_TypeDef mik32fat_find_next_cluster(MIK32FAT_Descriptor_TypeDef* 
     {
         return MIK32FAT_STATUS_INCORRECT_ARGUMENT;
     }
-    /* Read FAT */
-    uint32_t bias = (fs->temp.cluster / (fs->sector_len_bytes/sizeof(uint32_t)));
-    __DISK_ERROR_CHECK( mik32fat_wheels_single_read(fs->card, fs->fat1_begin + bias, fs->buffer) );
-    fs->prev_sector = fs->fat1_begin + bias;
-    /* Read field */
-    uint32_t* ptr = (uint32_t*)fs->buffer;
-    uint32_t link = ptr[fs->temp.cluster % (fs->sector_len_bytes/sizeof(uint32_t))];
+    
+    uint32_t fat_sector = (fs->temp.cluster + 2) / (fs->sector_len_bytes/sizeof(uint32_t));
+    uint32_t link_idx = (fs->temp.cluster + 2) % (fs->sector_len_bytes/sizeof(uint32_t));
+    // printf("Link idx: %u\n", (unsigned)link_idx);
+    uint32_t* link_in_sector = (uint32_t*)fs->buffer;
+    
+    __DISK_ERROR_CHECK( __mik32fat_sector_sread(fs, fs->fat1_begin + fat_sector) );
+    uint32_t link = link_in_sector[link_idx];
+    // printf("Link: 0x%X\n", link);
     if ((link & 0x0FFFFFFF) >= 0x0FFFFFF7)
     {
         return MIK32FAT_STATUS_NOT_FOUND;
     }
     else
     {
-        fs->temp.cluster = link;
+        fs->temp.cluster = link-2;
         return MIK32FAT_STATUS_OK;
     }
 }
@@ -552,7 +554,12 @@ MIK32FAT_Status_TypeDef mik32fat_take_free_cluster(MIK32FAT_Descriptor_TypeDef* 
  * @param dir true - create directory, false - create file
  * @returns
  */
-MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const char* name, bool dir)
+MIK32FAT_Status_TypeDef mik32fat_create
+(
+    MIK32FAT_Descriptor_TypeDef *fs,
+    const char *name,
+    bool dir
+)
 {
     if (fs == NULL || name == NULL)
     {
@@ -659,7 +666,7 @@ MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const c
 
     /* Find free space for descriptor in directory */
     uint32_t sector;
-    uint16_t entire;
+    uint16_t entire = 0;
     MIK32FAT_Status_TypeDef res = MIK32FAT_STATUS_OK;
     MIK32FAT_TempData_TypeDef temp = fs->temp;
     while (res == MIK32FAT_STATUS_OK)
@@ -667,7 +674,7 @@ MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const c
         sector = fs->data_region_begin + fs->temp.cluster * fs->param.sec_per_clust;
         for (uint8_t idx=0; idx < fs->param.sec_per_clust; idx++)
         {
-            __DISK_ERROR_CHECK( __mik32fat_sector_sread(fs, sector) );
+            __SAVING_TEMP_ERROR_CHECK( __mik32fat_sector_sread(fs, sector) );
             sector += 1;
             entire = 0;
             while (entire < fs->sector_len_bytes)
@@ -688,8 +695,7 @@ MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const c
     if (res == MIK32FAT_STATUS_NOT_FOUND)
     {
         uint32_t value;
-        res = mik32fat_take_free_cluster(fs, fs->temp.cluster, &value);
-        if (res != MIK32FAT_STATUS_OK) return res;
+        __SAVING_TEMP_ERROR_CHECK( mik32fat_take_free_cluster(fs, fs->temp.cluster, &value));
         entire = 0;
         sector = fs->data_region_begin + value * fs->param.sec_per_clust;
         //__DISK_ERROR_CHECK( mik32fat_wheels_single_read(fs->card, sector, fs->buffer) );
@@ -698,7 +704,7 @@ MIK32FAT_Status_TypeDef mik32fat_create(MIK32FAT_Descriptor_TypeDef* fs, const c
     /* entire contains pointer to descriptor in directory's sector (sector) */
     memset(fs->buffer+entire+11, 0x00, 32-11);
 
-    __DISK_ERROR_CHECK( __mik32fat_sector_sread(fs, sector) );
+    __SAVING_TEMP_ERROR_CHECK( __mik32fat_sector_sread(fs, sector) );
     fs->prev_sector = sector;
     MIK32FAT_Entire_TypeDef *new_obj = (MIK32FAT_Entire_TypeDef*)(fs->buffer + entire);
     new_obj->FileSize = 0;

@@ -466,7 +466,29 @@ void cli_fileopen(void)
             reserved_buff[cnt] = '\0';
         }
     }
-    mik32fat_decode_status(mik32fat_file_open(&file, &fat, reserved_buff, 'R'));
+    sym = '\0';
+    cnt = 0;
+    printf("Enter mode: > ");
+    while (sym != '\n' && sym != '\r')
+    {
+        sym = getchar();
+        putchar(sym);
+        if (sym == '\b')
+        {
+            if (cnt > 0) cnt--;
+        }
+        else if (sym != '\n' && sym != '\r')
+        {
+            reserved_buff[30+cnt++] = sym;
+        }
+        else
+        {
+            reserved_buff[30+cnt] = '\0';
+        }
+    }
+    printf("Name: *%s*; mode: *%s*\n", reserved_buff, reserved_buff+30);
+    mik32fat_decode_status(mik32fat_file_open(&file, &fat, reserved_buff, reserved_buff+30));
+    mik32fat_diag_decode_file(&file);
 }
 
 
