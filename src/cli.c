@@ -130,6 +130,10 @@ void cli_command(void)
         {
             cli_file_readbyte();
         }
+        else if (strcmp(buf, "writebyte")==0)
+        {
+            cli_file_writebyte();
+        }
         else if (strcmp(buf, "")==0)
         {
             //do nothing
@@ -167,6 +171,7 @@ void cli_help(void)
     printf("* ls\n");
     printf("* pwd\n");
     printf("* readbyte\n");
+    printf("* writebyte\n");
 }
 
 void cli_spi_init(void)
@@ -592,7 +597,21 @@ void cli_fat_pwd(void)
 
 void cli_file_readbyte(void)
 {
-    char dummy = 'X';
-    printf("Status: %u\n", mik32fat_file_read_byte(&file, &dummy));
-    printf("Res: %c\n", dummy);
+    char dummy[50];
+    int res = mik32fat_file_read(&file, dummy, 50);
+    printf("received: %u\n", res);
+    mik32fat_decode_status(file.errcode);
+    for (int i=0; i<res; i++)
+    {
+        printf("%c", dummy[i]);
+    }
+    printf("\n");
+}
+
+void cli_file_writebyte(void)
+{
+    char str[] = "ANOmapodstava_";
+    printf("sent: %u\n", mik32fat_file_write(&file, str, sizeof(str)));
+    mik32fat_decode_status(file.errcode);
+    mik32fat_decode_status(mik32fat_file_close(&file));
 }

@@ -81,6 +81,9 @@ void mik32fat_decode_status(MIK32FAT_Status_TypeDef status)
         case MIK32FAT_STATUS_INCORRECT_FILE_LENGHT:
             printf("Incorrect file length");
             break;
+        case MIK32FAT_STATUS_END_OF_FILE:
+            printf("End of file");
+            break;
         default:
             printf("Unexpected error (%d)", (int)status);
     }

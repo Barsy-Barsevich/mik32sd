@@ -123,6 +123,8 @@ typedef struct
     MIK32FAT_Descriptor_TypeDef *fs;
     MIK32FAT_TempData_TypeDef param;
     uint32_t data_to_read;
+    uint32_t calculated_sector_to_write;
+    uint32_t written_bytes;
     struct
     {
         uint32_t temp_cluster;
