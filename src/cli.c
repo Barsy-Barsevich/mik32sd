@@ -608,10 +608,18 @@ void cli_file_readbyte(void)
     printf("\n");
 }
 
+
+static char da[5000];
+
 void cli_file_writebyte(void)
 {
-    char str[] = "ANOmapodstava_";
-    printf("sent: %u\n", mik32fat_file_write(&file, str, sizeof(str)));
+    // char str[] = "ANOmapodstava_";
+    // printf("sent: %u\n", mik32fat_file_write(&file, str, sizeof(str)));
+    for (int i=0; i<5000; i++)
+    {
+        da[i] = 'A';
+    }
+    printf("sent: %u\n", mik32fat_file_write(&file, da, 1000));
     mik32fat_decode_status(file.errcode);
     mik32fat_decode_status(mik32fat_file_close(&file));
 }

@@ -140,5 +140,6 @@ typedef struct
         bool enable;
     } w;
     bool writing_not_finished;
+    bool closed;
     MIK32FAT_Status_TypeDef errcode;
 } MIK32FAT_File_TypeDef;

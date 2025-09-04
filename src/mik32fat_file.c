@@ -396,8 +396,10 @@ MIK32FAT_Status_TypeDef mik32fat_file_open
     file->fs = fs;
     file->param = fs->temp;
     file->writing_not_finished = false;
-    
+    file->closed = false;
+
     fs->temp = temp;
+    file->errcode = MIK32FAT_STATUS_OK;
     return MIK32FAT_STATUS_OK;
 }
 
@@ -412,6 +414,11 @@ int mik32fat_file_read_byte
     {
         file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
         return (int)MIK32FAT_STATUS_INCORRECT_ARGUMENT;
+    }
+    if (file->closed)
+    {
+        file->errcode = MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+        return MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
     }
     if (!file->r.enable)
     {
@@ -494,6 +501,11 @@ int mik32fat_file_read
         file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
         return 0;
     }
+    if (file->closed)
+    {
+        file->errcode = MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+        return MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+    }
     if (!file->r.enable)
     {
         file->errcode = MIK32FAT_STATUS_ERROR;
@@ -570,6 +582,11 @@ int mik32fat_file_write_byte
         file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
         return (int)MIK32FAT_STATUS_INCORRECT_ARGUMENT;
     }
+    if (file->closed)
+    {
+        file->errcode = MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+        return MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+    }
     if (!file->w.enable)
     {
         file->errcode = MIK32FAT_STATUS_ERROR;
@@ -638,6 +655,11 @@ int mik32fat_file_write
     {
         file->errcode = MIK32FAT_STATUS_INCORRECT_ARGUMENT;
         return 0;
+    }
+    if (file->closed)
+    {
+        file->errcode = MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
+        return MIK32FAT_STATUS_CLOSED_FILE_ACCESS_ATTEMPT;
     }
     if (!file->w.enable)
     {
@@ -722,6 +744,7 @@ MIK32FAT_Status_TypeDef mik32fat_file_close
     }
     
     MIK32FAT_Descriptor_TypeDef *fs = file->fs;
+    file->closed = true;
     if (file->writing_not_finished)
     {
         if (file->calculated_sector_to_write == 0)
