@@ -600,21 +600,23 @@ void cli_fat_pwd(void)
     printf("%s\n", fat.temp.name);
 }
 
+
+static char da[5000];
+
+
 void cli_file_readbyte(void)
 {
-    char dummy[50];
-    int res = mik32fat_file_read(&file, dummy, 50);
+    int res = mik32fat_file_read(&file, da, 5000);
     printf("received: %u\n", res);
     mik32fat_decode_status(file.errcode);
-    for (int i=0; i<res; i++)
-    {
-        printf("%c", dummy[i]);
-    }
+    // for (int i=0; i<res; i++)
+    // {
+    //     printf("%c", dummy[i]);
+    // }
     printf("\n");
 }
 
 
-static char da[5000];
 
 void cli_file_writebyte(void)
 {
