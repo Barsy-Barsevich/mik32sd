@@ -36,3 +36,4 @@ void cli_fat_ls(void);
 void cli_fat_pwd(void);
 void cli_file_readbyte(void);
 void cli_file_writebyte(void);
+void cli_fileclose(void);

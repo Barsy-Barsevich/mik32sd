@@ -134,6 +134,10 @@ void cli_command(void)
         {
             cli_file_writebyte();
         }
+        else if (strcmp(buf, "fileclose")==0)
+        {
+            cli_fileclose();
+        }
         else if (strcmp(buf, "")==0)
         {
             //do nothing
@@ -172,6 +176,7 @@ void cli_help(void)
     printf("* pwd\n");
     printf("* readbyte\n");
     printf("* writebyte\n");
+    printf("* fileclose\n");
 }
 
 void cli_spi_init(void)
@@ -621,5 +626,10 @@ void cli_file_writebyte(void)
     }
     printf("sent: %u\n", mik32fat_file_write(&file, da, 1000));
     mik32fat_decode_status(file.errcode);
+    // mik32fat_decode_status(mik32fat_file_close(&file));
+}
+
+void cli_fileclose(void)
+{
     mik32fat_decode_status(mik32fat_file_close(&file));
 }
