@@ -3,6 +3,9 @@
 #include "mik32sd.h"
 #include "mik32sd_diag.h"
 
+void mik32sd_command_csdown(MIK32SD_Descriptor_TypeDef *sd);
+void mik32sd_command_csup(MIK32SD_Descriptor_TypeDef *sd);
+void mik32sd_command_spiex(MIK32SD_Descriptor_TypeDef *sd, const char *din);
 void mik32sd_command_sector_read(MIK32SD_Descriptor_TypeDef* sd, uint32_t sector_address, char *__restrict dst);
 void mik32sd_command_sector_dump(uint32_t sector_address);
 void mik32sd_command_sector_write(MIK32SD_Descriptor_TypeDef *sd, uint32_t sector_address, char *src);
