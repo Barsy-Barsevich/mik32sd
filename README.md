@@ -6,6 +6,7 @@
 ---
 ## Требуемые нестандартные модули
 `mik32_transaction` (https://github.com/Barsy-Barsevich/mik32_transaction)
+
 `mik32_stdio` (https://github.com/Barsy-Barsevich/mik32_stdio), только если методы `mik32sd_command.h` использованы
 
 ---
