@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <string.h>
 #include "spi_transaction.h"
@@ -31,3 +35,7 @@ dma_status_t mik32_sd_spi_reduce_clock_speed(mik32_sd_spi_t *desc);
 uint8_t mik32_sd_spi_ex(mik32_sd_spi_t *desc, uint8_t data);
 dma_status_t mik32_sd_spi_sector_read(mik32_sd_spi_t *desc, void *dst, uint32_t len_bytes);
 dma_status_t mik32_sd_spi_sector_write(mik32_sd_spi_t *desc, const void *src, uint32_t len_bytes);
+
+#if defined(__cplusplus)
+}
+#endif

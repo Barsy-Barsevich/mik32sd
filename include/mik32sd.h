@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include "mik32sd_spi.h"
 #include "mik32sd_const.h"
 #include "mik32sd_types.h"
@@ -10,3 +14,7 @@ MIK32SD_Status_TypeDef mik32_sd_send_command(MIK32SD_Descriptor_TypeDef *sd, MIK
 MIK32SD_Status_TypeDef mik32_sd_single_read(MIK32SD_Descriptor_TypeDef *sd, uint32_t addr, uint8_t* buf);
 MIK32SD_Status_TypeDef mik32_sd_single_write(MIK32SD_Descriptor_TypeDef *sd, uint32_t addr, uint8_t* buf);
 MIK32SD_Status_TypeDef mik32_sd_single_erase(MIK32SD_Descriptor_TypeDef *sd, uint32_t addr);
+
+#if defined(__cplusplus)
+}
+#endif

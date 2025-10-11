@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include "mik32sd_spi.h"
@@ -37,3 +41,7 @@ void cli_fat_pwd(void);
 void cli_file_readbyte(void);
 void cli_file_writebyte(void);
 void cli_fileclose(void);
+
+#if defined(__cplusplus)
+}
+#endif
